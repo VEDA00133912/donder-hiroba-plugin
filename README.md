@@ -1,6 +1,8 @@
 # donder-hiroba-plugin
 どんだーひろばのスコアリストページでフィルターボタン、検索ボックスを追加するためのスクリプトです。  
 リロードすると消えるので再実行するようにしてください(選択したボタンは記憶するようにしてます)  
+- サポートサーバー  
+<a href="https://discord.gg/CytkCY2zpf" target="_blank"><img src="https://discord.com/api/guilds/1327953028619304981/widget.png?style=banner3" alt="Discord Banner"/></a>
 
 ## 使い方
 一応スマホでもPCでも使えます！ブックマークレットの登録がちょっとややこしいですが、手順リンク貼っておきます
