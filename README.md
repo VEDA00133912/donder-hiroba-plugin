@@ -10,9 +10,11 @@
 そしたらブックマークを編集してURLの部分をdonder-hiroba-bl.jsの内容に置き換えてください。  
 それが完了したら[スコアリスト画面](https://donderhiroba.jp/score_list.php)でブックマークレットを押して実行すればできます。  
 - Androidの人のブックマークレット作成方法  
-https://hep.eiz.jp/article/android-bookmarklet/  
+https://hep.eiz.jp/article/android-bookmarklet/    
+https://www.youtube.com/watch?v=5n7HbjvnG8U  
 - iphoneの人のブックマークレット作成方法  
-https://hep.eiz.jp/article/iphone-bookmarklet/  
+https://hep.eiz.jp/article/iphone-bookmarklet/    
+https://www.youtube.com/shorts/gSjTsXi5JFk  
 ### PCの人向け
 - ブックマークレットで実行する場合(簡単だしオススメ)  
 まずdonder-hiroba-bl.jsの内容をコピーしてブックマークレットとして登録しておきます。  
