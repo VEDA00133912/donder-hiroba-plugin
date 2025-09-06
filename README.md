@@ -9,7 +9,7 @@
 ### スマホの人向け
 - スマホの人はブックマークレットのほうでのみ実行できます。  
 まずドンだーひろばを開いてブックマークします。  
-そしたらブックマークを編集してURLの部分をdonder-hiroba-bl.jsの内容に置き換えてください。  
+そしたらブックマークを編集してURLの部分を[donder-hiroba-bl.js](https://raw.githubusercontent.com/VEDA00133912/donder-hiroba-plugin/refs/heads/main/donder-hiroba-bl.js)の内容に置き換えてください。  
 それが完了したら[スコアリスト画面](https://donderhiroba.jp/score_list.php)でブックマークレットを押して実行すればできます。  
 - Androidの人のブックマークレット作成方法  
 https://hep.eiz.jp/article/android-bookmarklet/    
@@ -19,13 +19,13 @@ https://hep.eiz.jp/article/iphone-bookmarklet/
 https://www.youtube.com/shorts/gSjTsXi5JFk  
 ### PCの人向け
 - ブックマークレットで実行する場合(簡単だしオススメ)  
-まずdonder-hiroba-bl.jsの内容をコピーしてブックマークレットとして登録しておきます。  
+まず[donder-hiroba-bl.js](https://raw.githubusercontent.com/VEDA00133912/donder-hiroba-plugin/refs/heads/main/donder-hiroba-bl.js)の内容をコピーしてブックマークレットとして登録しておきます。  
 ドンだーひろばの[スコアリスト画面](https://donderhiroba.jp/score_list.php)でブックマークレットを押して実行するだけです。  
   
 ![bl](./image/bl.png)  
 - コンソールで実行する場合  
 まずドンだーひろばの[スコアリスト画面](https://donderhiroba.jp/score_list.php)で`ctrl + shift + i`をして開発者ツールを開きます  
-次にdonder-hiroba-cl.jsの内容をコピーしてそこに貼り付けます。  
+次に[donder-hiroba-cl.js](https://raw.githubusercontent.com/VEDA00133912/donder-hiroba-plugin/refs/heads/main/donder-hiroba-cl.js)の内容をコピーしてそこに貼り付けます。  
 Enterを押して実行してください  
   
 ![cl](./image/cl.png)
