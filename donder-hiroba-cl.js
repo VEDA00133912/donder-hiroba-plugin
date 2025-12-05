@@ -1,119 +1,208 @@
 (function() {
     'use strict';
     const $ = window.jQuery;
+    if (!$) return;
+    if (window.location.href.indexOf('score_list') === -1) return;
 
-    if (window.location.href.indexOf('score_list') > 0) {
-        scoreListFilter();
+    const STORAGE_KEYS = {
+        CROWN: 'activeCrown',
+        URA: 'activeUra'
+    };
+
+    const SELECTORS = {
+        TARGET_CONTAINER: '#tabList',
+        CONTENT_BOX: '.contentBox',
+        SEARCH_INPUT: '#songSearchInput',
+        FILTER_BTN_CROWN: '.filterBtn[data-type="crown"]',
+        FILTER_BTN_URA: '.filterBtn[data-type="ura"]'
+    };
+
+    const STYLES = `
+        .customFiltersLi {
+            width: 100%;
+            padding: 5px 0;
+            list-style: none;
+        }
+        #songSearchInput {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        #customFilters {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .filterRow {
+            display: flex;
+            gap: 5px;
+        }
+        .filterBtn {
+            flex: 1;
+            padding: 5px 10px;
+            background: #444;
+            color: #fff;
+            border-radius: 5px;
+            border: 2px solid #222;
+            cursor: pointer;
+            outline: none;
+            transition: background 0.2s;
+        }
+        .filterBtn.active {
+            background: #ff9800;
+            border-color: #fff;
+        }
+    `;
+    
+    initScoreFilter();
+
+    function initScoreFilter() {
+        // cssの追加
+        injectStyles();
+
+        // 初期化
+        const state = {
+            crown: localStorage.getItem(STORAGE_KEYS.CROWN),
+            ura: localStorage.getItem(STORAGE_KEYS.URA),
+            query: ''
+        };
+
+        // UI構築
+        renderFilterUI();
+
+        // 楽曲データの解析と取得
+        const songList = parseSongList();
+
+        // 初期表示の更新
+        updateView(state, songList);
+
+        // イベントリスナーの設定
+        bindEvents(state, songList);
+    }
+    
+    // CSSの追加
+    function injectStyles() {
+        const styleEl = document.createElement('style');
+        styleEl.textContent = STYLES;
+        document.head.appendChild(styleEl);
     }
 
-    function scoreListFilter(){
-        let activeCrown = localStorage.getItem('activeCrown') || null;
-        let activeUra = localStorage.getItem('activeUra') || null;
-        let searchQuery = '';
-
-        const buttonsHtml = `
-        <li class='customFiltersLi' style='width:100%; padding:5px 0;'>
-            <input type='text' id='songSearchInput' placeholder='曲名で検索'
-       style='width:calc(100%); padding:5px 8px; margin-bottom:5px; border-radius:5px; border:1px solid #ccc; box-sizing:border-box;'>
-
-            <div id='customFilters' style='display:flex; flex-direction:column; gap:5px;'>
-                <div style='display:flex; gap:5px;'>
-                    <button class='filterBtn crownBtn' data-crown='donderfull' style='flex:1; padding:5px 10px; background:#444; color:#fff; border-radius:5px; border:2px solid #222; cursor:pointer; outline:none;'>全良</button>
-                    <button class='filterBtn crownBtn' data-crown='gold' style='flex:1; padding:5px 10px; background:#444; color:#fff; border-radius:5px; border:2px solid #222; cursor:pointer; outline:none;'>フルコンボ</button>
+    function renderFilterUI() {
+        const html = `
+        <li class='customFiltersLi'>
+            <input type='text' id='songSearchInput' placeholder='曲名で検索'>
+            <div id='customFilters'>
+                <div class='filterRow'>
+                    <button class='filterBtn' data-type='crown' data-value='donderfull'>全良</button>
+                    <button class='filterBtn' data-type='crown' data-value='gold'>フルコンボ</button>
                 </div>
-                <div style='display:flex; gap:5px;'>
-                    <button class='filterBtn crownBtn' data-crown='silver' style='flex:1; padding:5px 10px; background:#444; color:#fff; border-radius:5px; border:2px solid #222; cursor:pointer; outline:none;'>クリア</button>
-                    <button class='filterBtn crownBtn' data-crown='played' style='flex:1; padding:5px 10px; background:#444; color:#fff; border-radius:5px; border:2px solid #222; cursor:pointer; outline:none;'>未クリア</button>
-                    <button class='filterBtn crownBtn' data-crown='none' style='flex:1; padding:5px 10px; background:#444; color:#fff; border-radius:5px; border:2px solid #222; cursor:pointer; outline:none;'>未プレイ</button>
+                <div class='filterRow'>
+                    <button class='filterBtn' data-type='crown' data-value='silver'>クリア</button>
+                    <button class='filterBtn' data-type='crown' data-value='played'>未クリア</button>
+                    <button class='filterBtn' data-type='crown' data-value='none'>未プレイ</button>
                 </div>
-                <div style='display:flex; gap:5px; margin-top:5px;'>
-                    <button class='filterBtn uraBtn' data-ura='normal' style='flex:1; padding:5px 10px; background:#444; color:#fff; border-radius:5px; border:2px solid #222; cursor:pointer; outline:none;'>おに譜面</button>
-                    <button class='filterBtn uraBtn' data-ura='ura' style='flex:1; padding:5px 10px; background:#444; color:#fff; border-radius:5px; border:2px solid #222; cursor:pointer; outline:none;'>おに(裏譜面)</button>
+                <div class='filterRow' style='margin-top:5px;'>
+                    <button class='filterBtn' data-type='ura' data-value='normal'>おに譜面</button>
+                    <button class='filterBtn' data-type='ura' data-value='ura'>おに(裏譜面)</button>
                 </div>
             </div>
         </li>`;
+        
+        $(SELECTORS.TARGET_CONTAINER).append(html);
+    }
 
-        $('#tabList').append(buttonsHtml);
-
-        // 曲情報の取得
-        const songList = [];
-        $('.contentBox').each(function(){
-            const songName = $(this).find('.songName, .songNameFontkids').text().trim();
-            const crownImg = $(this).find('.buttonList li:nth-child(4) a img').attr('src') || '';
-            let crownStatus = 'none';
-            if(crownImg.indexOf('donderfull') > 0) crownStatus = 'donderfull';
-            else if(crownImg.indexOf('gold') > 0) crownStatus = 'gold';
-            else if(crownImg.indexOf('silver') > 0) crownStatus = 'silver';
-            else if(crownImg.indexOf('played') > 0) crownStatus = 'played';
-
-            const isUra = $(this).find('.songNameArea.ura.clearfix').length > 0;
-
-            songList.push({
-                element: $(this),
+    function parseSongList() {
+        const list = [];
+        $(SELECTORS.CONTENT_BOX).each(function() {
+            const $el = $(this);
+            const songName = $el.find('.songName, .songNameFontkids').text().trim();
+            const crownImgSrc = $el.find('.buttonList li:nth-child(4) a img').attr('src') || '';
+            
+            list.push({
+                element: $el,
                 songName: songName,
-                crown: crownStatus,
-                ura: isUra
+                crown: getCrownType(crownImgSrc),
+                isUra: $el.find('.songNameArea.ura.clearfix').length > 0
             });
         });
+        return list;
+    }
 
-        function updateFilter() {
-            songList.forEach(item => {
-                let show = true;
-                if(activeCrown && item.crown !== activeCrown) show = false;
-                if(activeUra && ((activeUra === 'ura' && !item.ura) || (activeUra === 'normal' && item.ura))) show = false;
-                if(searchQuery && !item.songName.toLowerCase().includes(searchQuery.toLowerCase())) show = false;
-                if(show) item.element.show();
-                else item.element.hide();
-            });
+    function getCrownType(src) {
+        if (src.includes('donderfull')) return 'donderfull';
+        if (src.includes('gold')) return 'gold';
+        if (src.includes('silver')) return 'silver';
+        if (src.includes('played')) return 'played';
+        return 'none';
+    }
+
+    function updateView(state, songList) {
+        updateButtonStyles(state);
+        filterList(state, songList);
+    }
+
+    function updateButtonStyles(state) {
+        $('.filterBtn').removeClass('active');
+        
+        if (state.crown) {
+            $(`.filterBtn[data-type="crown"][data-value="${state.crown}"]`).addClass('active');
         }
-
-        function restoreButtonState() {
-            $('.crownBtn').each(function(){
-                if($(this).data('crown') === activeCrown){
-                    $(this).css({'background':'#ff9800','border-color':'#fff'});
-                } else {
-                    $(this).css({'background':'#444','border-color':'#222'});
-                }
-            });
-            $('.uraBtn').each(function(){
-                if($(this).data('ura') === activeUra){
-                    $(this).css({'background':'#ff9800','border-color':'#fff'});
-                } else {
-                    $(this).css({'background':'#444','border-color':'#222'});
-                }
-            });
-            updateFilter();
+        if (state.ura) {
+            $(`.filterBtn[data-type="ura"][data-value="${state.ura}"]`).addClass('active');
         }
+    }
 
-        restoreButtonState();
+    function filterList(state, songList) {
+        songList.forEach(song => {
+            let isVisible = true;
 
-        // ボタンクリック
-        $('.crownBtn').click(function(){
-            const selected = $(this).data('crown');
-            if(activeCrown === selected){
-                activeCrown = null;
-            } else {
-                activeCrown = selected;
+            // 王冠
+            if (state.crown && song.crown !== state.crown) {
+                isVisible = false;
             }
-            localStorage.setItem('activeCrown', activeCrown);
-            restoreButtonState();
-        });
-
-        $('.uraBtn').click(function(){
-            const selected = $(this).data('ura');
-            if(activeUra === selected){
-                activeUra = null;
-            } else {
-                activeUra = selected;
+            // 裏譜面
+            if (state.ura) {
+                if (state.ura === 'ura' && !song.isUra) isVisible = false;
+                if (state.ura === 'normal' && song.isUra) isVisible = false;
             }
-            localStorage.setItem('activeUra', activeUra);
-            restoreButtonState();
-        });
+            // 検索
+            if (state.query && !song.songName.toLowerCase().includes(state.query.toLowerCase())) {
+                isVisible = false;
+            }
 
-        // 検索ボックス
-        $('#songSearchInput').on('input', function(){
-            searchQuery = $(this).val().trim();
-            updateFilter();
+            // 表示切り替え
+            isVisible ? song.element.show() : song.element.hide();
         });
     }
+
+    function bindEvents(state, songList) {
+        // 王冠、裏譜面ボタンのクリック
+        $('.filterBtn').on('click', function() {
+            const $btn = $(this);
+            const type = $btn.data('type'); // 'crown' or 'ura'
+            const value = $btn.data('value');
+
+            if (type === 'crown') {
+                state.crown = (state.crown === value) ? null : value;
+                localStorage.setItem(STORAGE_KEYS.CROWN, state.crown || ''); // nullなら空文字保存でも可
+                if(!state.crown) localStorage.removeItem(STORAGE_KEYS.CROWN);
+            } else if (type === 'ura') {
+                state.ura = (state.ura === value) ? null : value;
+                localStorage.setItem(STORAGE_KEYS.URA, state.ura || '');
+                if(!state.ura) localStorage.removeItem(STORAGE_KEYS.URA);
+            }
+
+            updateView(state, songList);
+        });
+
+        // 検索ボックス入力
+        $(SELECTORS.SEARCH_INPUT).on('input', function() {
+            state.query = $(this).val().trim();
+            updateView(state, songList);
+        });
+    }
+
 })();
